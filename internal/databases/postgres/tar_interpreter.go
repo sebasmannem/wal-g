@@ -115,8 +115,11 @@ func (tarInterpreter *FileTarInterpreter) Interpret(fileReader io.Reader, fileIn
 			tracelog.ErrorLogger.Printf("failed to stat %s: %s", targetPath, err.Error())
 			return err
 		} else if fi.Mode()&fs.ModeSymlink != 0 {
-			// target exists and is symlink. Replace (remove before create)
-			if err = os.Remove(targetPath); err == nil {
+			if useNewUnwrapImplementation {
+				tracelog.DebugLogger.Println("New unwrap implementation, so this is an older version than the one we found before.", targetPath)
+				return nil
+			} else if err = os.Remove(targetPath); err == nil {
+				// target exists and is symlink and using old unwrap implementation. Replace (remove before create)
 				tracelog.DebugLogger.Println("Symlink already existed. Removed so we can replace.", targetPath)
 			} else if err != os.ErrNotExist {
 				return fmt.Errorf("symlink %s already exists, and could not be removed", targetPath)
